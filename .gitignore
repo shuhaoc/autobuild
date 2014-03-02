@@ -1,0 +1,14 @@
+obj/
+ipch/
+pdb/
+*.sdf
+*.suo
+*.opensdf
+*.user
+*.aps
+*.exe
+*.ilk
+*.dll
+*.lib
+*.exp
+*.db
