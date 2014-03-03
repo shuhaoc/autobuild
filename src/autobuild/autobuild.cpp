@@ -129,6 +129,7 @@ void callMsbuild(const tstring& slnFilePath) {
 int _tmain(int argc, _TCHAR* argv[]) {
 	if (argc != 2) {
 		printUsage();
+		return 0;
 	}
 
 	tstring slnFile = argv[1];
