@@ -113,26 +113,44 @@ void MonitorThread::takeChangeSet(MonitorThread::ChangeItemSet& changeList) {
 }
 
 void printUsage() {
-	tcout << "usage: autobuild {Solution File Path}" << endl;
+	tcout << "usage: autobuild {Solution File Path} [{msbuild arguments}...]" << endl;
+}
+
+void callMsbuild(const tstring& slnFilePath, const vector<tstring>& args) {
+	basic_ostringstream<TCHAR> cmd;
+	cmd << _T("msbuild /m ") << slnFilePath;
+	for (auto i = args.begin(); i != args.end(); ++i) {
+		cmd << _T(" ") << *i;
+	}
+	int ret = 0;
+	do {
+#ifdef _UNICODE
+		ret = _wsystem(cmd.str().c_str());
+#else
+		ret = system(cmd.str().c_str());
+#endif
+	} while (ret != 0);
 }
 
 void callMsbuild(const tstring& slnFilePath) {
-	basic_ostringstream<TCHAR> cmd;
-	cmd << _T("msbuild /m ") << slnFilePath;
-#ifdef _UNICODE
-	_wsystem(cmd.str().c_str());
-#else
-	system(cmd.str().c_str());
-#endif
+	vector<tstring> emptyArgs;
+	callMsbuild(slnFilePath, emptyArgs);
 }
 
+
 int _tmain(int argc, _TCHAR* argv[]) {
-	if (argc != 2) {
+	if (argc < 2) {
 		printUsage();
 		return 0;
 	}
 
 	tstring slnFile = argv[1];
+
+	vector<tstring> msbuildArgs;
+	for (int i = 2; i < argc; ++i) {
+		msbuildArgs.push_back(argv[i]);
+	}
+
 	tstring dir = getFileDir(slnFile);
 	if (dir.empty()) {
 		dir = _T(".");
@@ -140,7 +158,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 	MonitorThread mt;
 	mt.start(dir, _T(".*\\.cpp|.*\\.h|.*\\.vcxproj|.*\\.sln"));
 
-	callMsbuild(slnFile);
+	callMsbuild(slnFile, msbuildArgs);
 
 	unsigned lastVersion = 0;
 	MonitorThread::ChangeItemSet changeList;
@@ -154,7 +172,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			
 		} else {
 			if (!changeList.empty()) {
-				callMsbuild(slnFile);
+				callMsbuild(slnFile, msbuildArgs);
 				tcout << "------------------ change list ------------------" << endl;
 				for (auto i = changeList.begin(); i != changeList.end(); ++i) {
 					ChangeItem* changeItem = *i;
