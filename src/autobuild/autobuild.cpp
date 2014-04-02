@@ -122,14 +122,11 @@ void callMsbuild(const tstring& slnFilePath, const vector<tstring>& args) {
 	for (auto i = args.begin(); i != args.end(); ++i) {
 		cmd << _T(" ") << *i;
 	}
-	int ret = 0;
-	do {
 #ifdef _UNICODE
-		ret = _wsystem(cmd.str().c_str());
+	_wsystem(cmd.str().c_str());
 #else
-		ret = system(cmd.str().c_str());
+	system(cmd.str().c_str());
 #endif
-	} while (ret != 0);
 }
 
 void callMsbuild(const tstring& slnFilePath) {
